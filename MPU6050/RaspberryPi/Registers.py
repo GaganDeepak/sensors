@@ -31,3 +31,7 @@ class MPURegisters:
 	
 
 	MPU6050_PWR_MGMT_1 = 0x6B #power management register
+	MPU6050_SMPRT_DIV = 0x19 #sample rate divider register
+	MPU6050_CONFIG = 0x1A #configuration register
+ 	
+	MPU6050_TEMP_OUT = 0x41 #Temperature Measurement Register
