@@ -35,3 +35,7 @@ class MPURegisters:
 	CONFIG = 0x1A #configuration register
  	
 	TEMP_OUT = 0x41 #Temperature Measurement Register
+	GYRO_CONFIG = 0x1B # configure gyroscope
+	ACCEL_CONFIG = 0x1C # configure accelerometer
+	ACCEL_XOUT_H = 0x3B # starting address of accelerometer data
+	GYRO_XOUT_H = 0x43 #starting address of gyroscope data

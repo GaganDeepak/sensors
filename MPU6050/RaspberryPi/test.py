@@ -16,12 +16,3 @@ while True:
     print(mpu.get_temperature(fahrenheit=True))
     
     time.sleep(0.5)
-
-
-
-
-    
-
-
-
-
