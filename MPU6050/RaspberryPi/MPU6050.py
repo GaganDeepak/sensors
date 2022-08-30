@@ -224,3 +224,81 @@ class MPU6050:
             GYRO_ZOUT_data = self.bus.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+4)
         
         return {'x': GYRO_XOUT_data, 'y': GYRO_YOUT_data, 'z': GYRO_ZOUT_data}
+
+            
+    def self_test(self):
+        """
+        Self test of mpu6050
+        """
+        gyro_result = self.self_test_gyroscope()
+        accel_result = self.self_test_accelerometer()
+        
+        return gyro_result,accel_result
+
+
+    def self_test_accelerometer(self):
+        '''
+        Self Testing accelerometer for checking difference between factory trim values vs actuals
+        '''
+        value_without_self_test = self.read_accelerometer()
+        self.accel_config(value = 0xF0)
+        value_with_self_test = self.read_accelerometer()
+        #getting last 5 bits
+        XA_TEST = ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0D) & 0xE0) >> 3) | ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x10) >> 4) & 0x03)
+        YA_TEST = ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0E) & 0xE0) >> 3) | ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x10) >> 2) & 0x03)
+        ZA_TEST = ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0F) & 0xE0) >> 3) | ((self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x10) >> 0) & 0x03)
+
+        self_test_response = value_with_self_test['x'] - value_without_self_test['x']
+        factory_trim_value = self.get_accel_ft_value(XA_TEST)
+        diff_x = (self_test_response-factory_trim_value)/factory_trim_value
+
+        self_test_response = value_with_self_test['y'] - value_without_self_test['y']
+        factory_trim_value = self.get_accel_ft_value(YA_TEST)
+        diff_y = (self_test_response-factory_trim_value)/factory_trim_value
+
+        self_test_response = value_with_self_test['z'] - value_without_self_test['z']
+        factory_trim_value = self.get_accel_ft_value(ZA_TEST)
+        diff_z = (self_test_response-factory_trim_value)/factory_trim_value
+        
+        return {'diff_x': diff_x, 'diff_y': diff_y, 'diff_z': diff_z}
+
+
+    
+    def self_test_gyroscope(self):
+        """
+        Self Testing gyroscope for checking difference between factory trim values vs actuals
+        """
+        value_without_self_test = self.read_gyroscope()
+        self.gyro_config(value = 0xE0)
+        value_with_self_test = self.read_gyroscope()
+        #getting last 5 bits
+        XG_TEST = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0D) & 0x1F
+        YG_TEST = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0E) & 0x1F
+        ZG_TEST = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,0x0F) & 0x1F
+
+        self_test_response = value_with_self_test['x'] - value_without_self_test['x']
+        factory_trim_value = self.get_gyro_ft_value(XG_TEST)
+        diff_x = (self_test_response-factory_trim_value)/factory_trim_value
+
+        self_test_response = value_with_self_test['y'] - value_without_self_test['y']
+        factory_trim_value = -self.get_gyro_ft_value(YG_TEST)
+        diff_y = (self_test_response-factory_trim_value)/factory_trim_value
+
+        self_test_response = value_with_self_test['z'] - value_without_self_test['z']
+        factory_trim_value = self.get_gyro_ft_value(ZG_TEST)
+        diff_z = (self_test_response-factory_trim_value)/factory_trim_value
+
+        return {'diff_x': diff_x, 'diff_y': diff_y, 'diff_z': diff_z}
+
+    def get_gyro_ft_value(self,value=0):
+        """
+        finds the ft value of the gyroscope
+        """
+        return 25*131*pow(1.046,value-1)
+    
+
+    def get_accel_ft_value(self,value=0):
+        """
+        finds the ft value of the accel
+        """
+        return (4096*0.34*pow(0.92,((value-1)/30)))/0.34
