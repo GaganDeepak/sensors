@@ -76,7 +76,7 @@ class MPU6050:
             if value != 0:
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
             else:
-                byte = self.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
+                byte = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
                 value = (reset*128 + sleep*64 + cycle*32 + temp_sense_disable*8 + clock_source) | byte
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
     
