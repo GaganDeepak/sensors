@@ -7,8 +7,6 @@ mpu = MPU6050(0x68)
 # Reset Test
 # mpu.reset()
 
-mpu.power_manage(mode=1) #Temperature off mode
-
 # Temperature Test
 while True:
     print("Temperature: ")

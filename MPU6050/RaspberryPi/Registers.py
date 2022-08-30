@@ -26,12 +26,12 @@ class MPURegisters:
 	Register access of MPU6050
 	"""
 	
-	MPU6050_ADDRESS_DEFAULT = 0x68 #address of MPU6050 when AD0 pin is LOW default condition
-	MPU6050_ADDRESS_AD0_HIGH = 0x69 #address of MPU6050 when AD0 pin is HIGH
+	ADDRESS_DEFAULT = 0x68 #address of MPU6050 when AD0 pin is LOW default condition
+	ADDRESS_AD0_HIGH = 0x69 #address of MPU6050 when AD0 pin is HIGH
 	
 
-	MPU6050_PWR_MGMT_1 = 0x6B #power management register
-	MPU6050_SMPRT_DIV = 0x19 #sample rate divider register
-	MPU6050_CONFIG = 0x1A #configuration register
+	PWR_MGMT_1 = 0x6B #power management register
+	SMPRT_DIV = 0x19 #sample rate divider register
+	CONFIG = 0x1A #configuration register
  	
-	MPU6050_TEMP_OUT = 0x41 #Temperature Measurement Register
+	TEMP_OUT = 0x41 #Temperature Measurement Register

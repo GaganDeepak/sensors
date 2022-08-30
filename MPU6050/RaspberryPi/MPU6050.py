@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from Registers import MPURegisters
+from Registers import MPURegisters as mpu6050
 from smbus import SMBus
 import time
 
@@ -47,8 +47,9 @@ class MPU6050:
         TEMP_DIS is set to 0, as it enables the temperature sensor by default.
         CLKSEL Bit is 001, that means we are going with 1, PLL with X axis gyroscopic reference. 
         '''
-        self.bus.write_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,MPURegisters.MPU6050_PWR_MGMT_1,0x01)
+        self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,0x01)
         
+        #@gagan remove default condition
         '''
         WRITE DATA on MPU6050_SMPRT_DIV
         By setting 0x00 means, it is 00000000, it is a 8 bit unsigned value.
@@ -56,49 +57,39 @@ class MPU6050:
         initially we are turning off digital low pass filter (DLPF = 000 or 111), therefore Gyroscope_Output_Rate = 8Khz
         We will get maximum samples through this.
         '''
-        self.bus.write_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,MPURegisters.MPU6050_SMPRT_DIV,0x00)
+        self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.SMPRT_DIV,0x00)
         
         '''
         WRITE DATA on MPU6050_CONFIG
         We will set it to 0x00, as we are not using DLPF and EXT_SYNC_SET, and we are keeping as low or 0.
         '''
-        self.bus.write_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,MPURegisters.MPU6050_CONFIG,0x00)
+        self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.CONFIG,0x00)
         
         
     
-    def power_manage(self,mode = 2):
+    def power_manage(self, reset: bool = False,sleep: bool = False,cycle: bool = False,
+                    temp_sense_disable: bool = False,clock_source: int = 0,value: int = 0):
             '''
-            @name : power_manage(self,mode = 2)
-            @params : 1. SLEEP : When set to true, this bit puts the MPU into sleep mode
-                    2. TEMPERATURE_CONTROL : When set to true, enables the onboard temperature sensor.
-                    3. CLOCK_SELECT : It will be selected as per user requirement, user can value between 0 to 7
-                    
-            @desc : This method will give more access to power management register and manage their MPU6050 in more optimised way
-                    By default mode will be 2.
-            
-            Created modes based on sleep and temperature control
-            | Sleep | Temperature |
-            |   0   |      0      |  Mode - 1
-            |   0   |      1      |  Mode - 2
-            |   1   |      0      |  Mode - 3
-            |   1   |      1      |  Mode - 4
-            
+            Sets the PWR_MGMT_1 register of mpu6050
+
+            :param reset: True = resets all internal registers to their default values
+            :type reset: bool
+            :param sleep: True = puts the MPU-6050 into sleep mode
+            :type sleep: bool
+            :param cycle: True = MPU-6050 will cycle between sleep mode and waking up
+            :type cycle: bool
+            :param temp_sense_disable: True = disables the temperature sensor
+            :type temp_sense_disable: bool
+            :param clock_source: Specifies the clock source of the device
+            :type clock_source: int 3-bit unsigned value
+            :param value: The value to set the PWR_MGMT_1 register to
+            :type value: int 8-bit unsigned value
             '''
-            
-            # Handle sleep mode
-            # Tried to implement match case, but again that same error :(, so again going with if elif
-            
-            if(mode == 1):
-                write_data = 0x09
-            elif(mode == 2):
-                write_data = 0x01
-            elif(mode == 3):
-                write_data = 0x2A #Please checkout this
-            elif(mode == 4):
-                write_data = 0x21
-                    
-                    
-            self.bus.write_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,MPURegisters.MPU6050_PWR_MGMT_1,write_data)
+            if value != 0:
+                self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
+            else:
+                value = reset*128 + sleep*64 + cycle*32 + temp_sense_disable*8 + clock_source
+                self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
     
     '''
     Method to calculate value from multiple registers
@@ -110,8 +101,8 @@ class MPU6050:
         returns the combined read results.
         '''
         
-        HIGH = self.bus.read_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,register)
-        LOW = self.bus.read_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,register + 1)
+        HIGH = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,register)
+        LOW = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,register + 1)
         
         #Calculation
         result_value = (HIGH << 8) + LOW 
@@ -122,13 +113,14 @@ class MPU6050:
             return result_value
         
         
-    def get_temperature(self,fahrenheit=False):
+    def get_temperature(self,fahrenheit: bool =False):
         """
         Reads the temperature from the temperature sensor on MPU-6050.
-        Returns the temperature in degrees Celcius or Fahrenheit.
+        :param fahrenheit:True returns the tempature in fahrenheit
+        :return: Temperature in Fahrenheit
         """
         
-        temp_register_value = self.read_i2c_data_multiple_registers(MPURegisters.MPU6050_TEMP_OUT)
+        temp_register_value = self.read_i2c_data_multiple_registers(mpu6050.TEMP_OUT)
         
         #Formula to compute the temp register value to temperature in degree celsius
         # Temperature in degree celsius = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
@@ -153,7 +145,7 @@ class MPU6050:
             but MPU6050_PWR_MGMT_1 will be 0x40 and WHO_AM_I will be 0x68 
         """
         
-        self.bus.write_byte_data(MPURegisters.MPU6050_ADDRESS_DEFAULT,MPURegisters.MPU6050_PWR_MGMT_1,0x80)
+        self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,0x80)
         print("Device Resetting...") if Debug else None
         time.sleep(0.01)
         
