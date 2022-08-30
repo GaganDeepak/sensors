@@ -76,7 +76,7 @@ class MPU6050:
             if value != 0:
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
             else:
-                byte = self.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
+                byte = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
                 value = (reset*128 + sleep*64 + cycle*32 + temp_sense_disable*8 + clock_source) | byte
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
     
@@ -224,43 +224,3 @@ class MPU6050:
             GYRO_ZOUT_data = self.bus.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+4)
         
         return {'x': GYRO_XOUT_data, 'y': GYRO_YOUT_data, 'z': GYRO_ZOUT_data}
-
-    
-    def self_test(self):
-        """
-        Self test of mpu6050
-        """
-
-
-
-    def self_test_accelerometer(self):
-        '''
-        Self Testing accelerometer for checking difference between factory trim values vs actuals
-        '''
-        
-
-
-    
-    def self_test_gyroscope(self):
-        """
-        Self Testing gyroscope for checking difference between factory trim values vs actuals
-        """
-        gyro_with_self_test_x = 
-        gyro_with_self_test_y =
-        gyro_with_self_test_z = 
-        gyro_with_self_test = 
-        self_test_response = gyro_with_self_test - gyro_without_self_test
-
-        diff = (self_test_response-factory_trim_value)/factory_trim_value
-
-    def get_gyro_ft_value(self,value=0):
-        """
-        finds the ft value of the gyroscope
-        """
-        return 25*131*pow(1.046,value-1)
-
-    def get_accel_ft_value(self,value=0):
-        """
-        finds the ft value of the accel
-        """
-        return (4096*0.34*pow(0.92,((value-1)/30)))/0.34
