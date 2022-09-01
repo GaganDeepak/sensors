@@ -37,6 +37,9 @@ class MPU6050:
         # Init parameters
         self.address = address
         self.bus = SMBus(bus)
+        self.ACCEL_SCALE_MODIFIER = 16384.0
+        self.GYRO_SCALE_MODIFIER = 131.0
+        self.GRAVITIY_MS2 = 9.80665
 
         '''
         Initial Conditions:
@@ -215,7 +218,6 @@ class MPU6050:
         update @addy123d:
         Now you can pass default values mentioned: 250, 500, 1000, 2000 degrees/second
         '''
-        
         # Create a dictionary
         # Full Range Selector
         scale_range = {
@@ -224,6 +226,8 @@ class MPU6050:
             1000 : 2,
             2000 : 3
         }
+        
+        self.GYRO_SCALE_MODIFIER = 32768/FULL_SCALE_RANGE
         
         if value == 0:
             value = XG_ST*128 + YG_ST*64 + ZG_ST*32 + (scale_range[FULL_SCALE_RANGE] <<3) | 0
@@ -247,23 +251,24 @@ class MPU6050:
         Now you can pass default values mentioned: 2g, 4g, 8g, 16g directly
         '''
         
-        
         # Create a dictionary
         # Full Range Selector
         scale_range = {
-            "2g" : 0,
-            "4g" : 1,
-            "8g" : 2,
-            "16g" : 3
+            "2g" : [0,2]
+            "4g" : [1,4]
+            "8g" : [2,8]
+            "16g" : [3,16]
         }
+        
+        self.ACCEL_SCALE_MODIFIER = 32768/scale_range[FULL_SCALE_RANGE][1]
       
         
         if value == 0:
-            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (scale_range[FULL_SCALE_RANGE] <<3) | 0
+            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (scale_range[FULL_SCALE_RANGE][0] <<3) | 0
             
         self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.ACCEL_CONFIG, value)
 
-    def read_accelerometer(self, ACCEL_XOUT: bool = True, ACCEL_YOUT: bool = True, ACCEL_ZOUT: bool = True):
+    def read_accelerometer(self, ACCEL_XOUT: bool = True, ACCEL_YOUT: bool = True, ACCEL_ZOUT: bool = True, gravity: bool = False):
         """
         Fetches Recent accelerometer values
         """
@@ -275,6 +280,16 @@ class MPU6050:
 
         if ACCEL_ZOUT:
             ACCEL_ZOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+4)
+            
+            
+        ACCEL_XOUT_data = ACCEL_XOUT_data / SELF.ACCEL_SCALE_MODIFIER
+        ACCEL_YOUT_data = ACCEL_YOUT_data / SELF.ACCEL_SCALE_MODIFIER
+        ACCEL_ZOUT_data = ACCEL_ZOUT_data / SELF.ACCEL_SCALE_MODIFIER
+        
+        if gravity:
+            ACCEL_XOUT_data = ACCEL_XOUT_data * self.GRAVITIY_MS2
+            ACCEL_YOUT_data = ACCEL_YOUT_data * self.GRAVITIY_MS2
+            ACCEL_ZOUT_data = ACCEL_ZOUT_data * self.GRAVITIY_MS2
 
 
         return {'x': ACCEL_XOUT_data, 'y': ACCEL_YOUT_data, 'z': ACCEL_ZOUT_data}
@@ -289,6 +304,11 @@ class MPU6050:
             GYRO_YOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+2)
         if GYRO_ZOUT:
             GYRO_ZOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+4)
+            
+            
+        GYRO_XOUT_data = GYRO_XOUT_data / self.GYRO_SCALE_MODIFIER
+        GYRO_YOUT_data = GYRO_YOUT_data / self.GYRO_SCALE_MODIFIER
+        GYRO_ZOUT_data = GYRO_ZOUT_data / self.GYRO_SCALE_MODIFIER
 
         return {'x': GYRO_XOUT_data, 'y': GYRO_YOUT_data, 'z': GYRO_ZOUT_data}
 
