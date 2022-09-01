@@ -48,8 +48,10 @@ class MPU6050:
         CLKSEL Bit is 001, that means we are going with 1, PLL with X axis gyroscopic reference. 
         '''
         self.power_manage(clock_source=1)
-        self.sample_rate_divider()
-        self.configuration()
+        self.sample_rate_divider() # freqency divide by 1
+        self.configuration(Dig_low_pass_filter = 1) #frequency = 1khz
+        self.gyro_config(FULL_SCALE_RANGE = 0)#250degree/s
+        self.accel_config(FULL_SCALE_RANGE = 0)#2g
         
         
     
@@ -76,8 +78,9 @@ class MPU6050:
             if value != 0:
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
             else:
-                byte = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
-                value = (reset*128 + sleep*64 + cycle*32 + temp_sense_disable*8 + clock_source) | byte
+                #@gagan bug fix
+                #byte = self.bus.read_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1)
+                value = (reset*128 + sleep*64 + cycle*32 + temp_sense_disable*8 + clock_source) #| byte
                 self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.PWR_MGMT_1,value)
     
     '''
@@ -202,13 +205,13 @@ class MPU6050:
         Fetches Recent accelerometer values
         """
         if ACCEL_XOUT:
-            ACCEL_XOUT_data = self.bus.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H)
+            ACCEL_XOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H)
 
         if ACCEL_YOUT:
-            ACCEL_YOUT_data = self.bus.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+2)
+            ACCEL_YOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+2)
 
         if ACCEL_ZOUT:
-            ACCEL_ZOUT_data = self.bus.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+4)
+            ACCEL_ZOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+4)
 
         return {'x': ACCEL_XOUT_data, 'y': ACCEL_YOUT_data, 'z': ACCEL_ZOUT_data}
     
@@ -217,11 +220,11 @@ class MPU6050:
         Fetches Recent gyroscope values
         """
         if GYRO_XOUT:
-            GYRO_XOUT_data = self.bus.read_i2c_byte_data(mpu6050.GYRO_XOUT_H)
+            GYRO_XOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H)
         if GYRO_YOUT:
-            GYRO_YOUT_data = self.bus.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+2)
+            GYRO_YOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+2)
         if GYRO_ZOUT:
-            GYRO_ZOUT_data = self.bus.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+4)
+            GYRO_ZOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H+4)
         
         return {'x': GYRO_XOUT_data, 'y': GYRO_YOUT_data, 'z': GYRO_ZOUT_data}
 
