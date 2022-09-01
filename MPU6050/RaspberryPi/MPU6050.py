@@ -142,9 +142,12 @@ class MPU6050:
         self.power_manage(reset = True)
         print("Device Resetting...") if Debug else None
         time.sleep(0.01)
+        
 
-    def sample_rate_divider(self,value: int = 0):
+
+    def sample_rate(self,value: int = 0):
         '''
+        Update : Just provide number of samples you want in range 3.906 to 8000
         WRITE DATA on MPU6050_SMPRT_DIV
         By setting 0x00 means, it is 00000000, it is a 8 bit unsigned value.
         Formula : Sample Rate = Gyroscope_Output_Rate/(1 + MPU6050_SMPLRT_DIV)
@@ -153,7 +156,32 @@ class MPU6050:
         :param value: sampling rate
         :type value: int 8-bit unsigned value
         '''
-        self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.SMPRT_DIV,value)
+        
+        '''
+        Update @addy123d:
+        we can take number of samples from user.
+        Formula : SMPRT_DIV = (Gyroscopic_Output_Rate/Number_Of_Samples) - 1
+        Initial Conditions we are turning off digital low pass filter (DLPF = 000 or 111), therefore Gyroscope_Output_Rate = 8Khz
+        '''
+        if value == 0:
+            self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.SMPRT_DIV,value)
+        else:
+            number_of_samples = value
+            
+            #Range For Samples , max = 8000 and min = 3.906
+            
+            if(number_of_samples >= 3.906 and number_of_samples <= 8000):
+                
+                # Considering, DLPF is OFF 
+                # RHS value corresponds to NUMBER OF SAMPLES
+                
+                value = (8000/number_of_samples)-1 #Considering Gyroscope
+                
+                self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT,mpu6050.SMPRT_DIV,value)
+            else:
+                #Generate OUT OF RANGE Error
+                print("ERROR: SAMPLES ARE OUT OF RANGE, Range is between 3.906 and 8000 samples")
+                
 
     def configuration(self,ext_sync: int = 0,Dig_low_pass_filter: int = 0, value: int = 0):
         '''
