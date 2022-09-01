@@ -125,12 +125,12 @@ class MPU6050:
             # In Fahrenheit
             # Conversion (0°C × 9/5) + 32 = 32°F
             fahrenheit_value = (temperature_value * (9/5)) + 32
-            return fahrenheit_value
+            return "%.2f" % fahrenheit_value
         
 
         else:
             # In Celsius
-            return temperature_value
+            return "%.2f" % temperature_value
 
     def reset(self):
         """
@@ -171,9 +171,11 @@ class MPU6050:
             
             if(number_of_samples > 1000):
                 self.configuration(Dig_low_pass_filter=0)
+            else:
+                self.configuration(Dig_low_pass_filter=1)
 
             value = (8000/number_of_samples) - 1
-            self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.SMPRT_DIV, value)
+            self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.SMPRT_DIV, int(value))
             
         else:
             # Generate OUT OF RANGE Error
@@ -195,8 +197,9 @@ class MPU6050:
             value = (ext_sync << 3) | Dig_low_pass_filter
 
         self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.CONFIG, value)
+        
 
-    def gyro_config(self, XG_ST: bool = False, YG_ST: bool = False, ZG_ST: bool = False, FULL_SCALE_RANGE: int = 0, value: int = 0):
+    def gyro_config(self, XG_ST: bool = False, YG_ST: bool = False, ZG_ST: bool = False, FULL_SCALE_RANGE: int = 250, value: int = 0):
         """This register is used to trigger gyroscope self-test and configure the gyroscopes full scale range.
         :param XG_ST: True = Setting this bit causes the X axis gyroscope to perform self test
         :type XG_ST: bool
@@ -207,12 +210,27 @@ class MPU6050:
         :param Full_Scale_Range : Selects the full scale range of gyroscopes
         :type Full_Scale_Range: int 2-bit unsigned value
         """
+        
+        '''
+        update @addy123d:
+        Now you can pass default values mentioned: 250, 500, 1000, 2000 degrees/second
+        '''
+        
+        # Create a dictionary
+        # Full Range Selector
+        scale_range = {
+            250 : 0,
+            500 : 1,
+            1000 : 2,
+            2000 : 3
+        }
+        
         if value == 0:
-            value = XG_ST*128 + YG_ST*64 + ZG_ST*32 + (FULL_SCALE_RANGE <<3) | 0
+            value = XG_ST*128 + YG_ST*64 + ZG_ST*32 + (scale_range[FULL_SCALE_RANGE] <<3) | 0
 
         self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.GYRO_CONFIG, value)
 
-    def accel_config(self, XA_ST: bool = False, YA_ST: bool = False,ZA_ST: bool = False,FULL_SCALE_RANGE: int = 0,value: int = 0):
+    def accel_config(self, XA_ST: bool = False, YA_ST: bool = False,ZA_ST: bool = False,FULL_SCALE_RANGE: str = "2g",value: int = 0):
         """This register is used to trigger accel self-test and configure the accel scopes full scale range.
         :param XA_ST: True = Setting this bit causes the X axis accel to perform self test
         :type XA_ST: bool
@@ -223,8 +241,26 @@ class MPU6050:
         :param FULL_SCALE_RANGE : Selects the full scale range of accelerometer
         :type FULL_SCALE_Range: int 2-bit unsigned value
         """
+        
+        '''
+        update @addy123d:
+        Now you can pass default values mentioned: 2g, 4g, 8g, 16g directly
+        '''
+        
+        
+        # Create a dictionary
+        # Full Range Selector
+        scale_range = {
+            "2g" : 0,
+            "4g" : 1,
+            "8g" : 2,
+            "16g" : 3
+        }
+      
+        
         if value == 0:
-            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (FULL_SCALE_RANGE <<3) | 0
+            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (scale_range[FULL_SCALE_RANGE] <<3) | 0
+            
         self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.ACCEL_CONFIG, value)
 
     def read_accelerometer(self, ACCEL_XOUT: bool = True, ACCEL_YOUT: bool = True, ACCEL_ZOUT: bool = True):
@@ -239,6 +275,7 @@ class MPU6050:
 
         if ACCEL_ZOUT:
             ACCEL_ZOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+4)
+
 
         return {'x': ACCEL_XOUT_data, 'y': ACCEL_YOUT_data, 'z': ACCEL_ZOUT_data}
 
