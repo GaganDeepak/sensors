@@ -1,7 +1,7 @@
 """MPU6050 Interface with RaspberryPi I2C port"""
 
 # The MIT License (MIT)
-# Copyright (c) 2022 Gagan Deepak and contributors
+# Copyright (c) 2022 Gagan Deepak, Aditya Chaudhary and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ from Registers import MPURegisters as mpu6050
 from smbus import SMBus
 import time
 
-Debug = True  # Set this to false when using !
+Debug = False  # Set this to false when using !
 
 
 class MPU6050:
@@ -54,8 +54,8 @@ class MPU6050:
         self.power_manage(clock_source=1)
         self.sample_rate()  # freqency divide by 1
         self.configuration(Dig_low_pass_filter=1)  # frequency = 1khz
-        self.gyro_config()  # 250degree/s
-        self.accel_config()  # 2g
+        self.gyro_config()
+        self.accel_config()
 
     def power_manage(self, reset: bool = False, sleep: bool = False, cycle: bool = False,
                     temp_sense_disable: bool = False, clock_source: int = 0, value: int = 0):
@@ -254,17 +254,18 @@ class MPU6050:
         # Create a dictionary
         # Full Range Selector
         scale_range = {    #@aditya bug fix
-            "2g" : [0,2],
-            "4g" : [1,4],
-            "8g" : [2,8],
-            "16g" : [3,16]
+            "2g" : 0,
+            "4g" : 1,
+            "8g" : 2,
+            "16g" : 3
         }
         
-        self.ACCEL_SCALE_MODIFIER = 32768/scale_range[FULL_SCALE_RANGE][1]
+        #update @addy123d, seperate 2 from string '2g'.
+        self.ACCEL_SCALE_MODIFIER = 32768/int(FULL_SCALE_RANGE[:-1])
       
         
         if value == 0:
-            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (scale_range[FULL_SCALE_RANGE][0] <<3) | 0
+            value = XA_ST*128 + YA_ST*64 + ZA_ST*32 + (scale_range[FULL_SCALE_RANGE] <<3) | 0
             
         self.bus.write_byte_data(mpu6050.ADDRESS_DEFAULT, mpu6050.ACCEL_CONFIG, value)
 
