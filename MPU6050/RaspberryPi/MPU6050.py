@@ -54,8 +54,8 @@ class MPU6050:
         self.power_manage(clock_source=1)
         self.sample_rate()  # freqency divide by 1
         self.configuration(Dig_low_pass_filter=1)  # frequency = 1khz
-        self.gyro_config(FULL_SCALE_RANGE=0)  # 250degree/s
-        self.accel_config(FULL_SCALE_RANGE=0)  # 2g
+        self.gyro_config()  # 250degree/s
+        self.accel_config()  # 2g
 
     def power_manage(self, reset: bool = False, sleep: bool = False, cycle: bool = False,
                     temp_sense_disable: bool = False, clock_source: int = 0, value: int = 0):
@@ -253,10 +253,10 @@ class MPU6050:
         
         # Create a dictionary
         # Full Range Selector
-        scale_range = {
-            "2g" : [0,2]
-            "4g" : [1,4]
-            "8g" : [2,8]
+        scale_range = {    #@aditya bug fix
+            "2g" : [0,2],
+            "4g" : [1,4],
+            "8g" : [2,8],
             "16g" : [3,16]
         }
         
@@ -282,11 +282,11 @@ class MPU6050:
             ACCEL_ZOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H+4)
             
             
-        ACCEL_XOUT_data = ACCEL_XOUT_data / SELF.ACCEL_SCALE_MODIFIER
-        ACCEL_YOUT_data = ACCEL_YOUT_data / SELF.ACCEL_SCALE_MODIFIER
-        ACCEL_ZOUT_data = ACCEL_ZOUT_data / SELF.ACCEL_SCALE_MODIFIER
+        ACCEL_XOUT_data = ACCEL_XOUT_data / self.ACCEL_SCALE_MODIFIER
+        ACCEL_YOUT_data = ACCEL_YOUT_data / self.ACCEL_SCALE_MODIFIER
+        ACCEL_ZOUT_data = ACCEL_ZOUT_data / self.ACCEL_SCALE_MODIFIER
         
-        if gravity:
+        if gravity == False: #@aditya bug fixNah
             ACCEL_XOUT_data = ACCEL_XOUT_data * self.GRAVITIY_MS2
             ACCEL_YOUT_data = ACCEL_YOUT_data * self.GRAVITIY_MS2
             ACCEL_ZOUT_data = ACCEL_ZOUT_data * self.GRAVITIY_MS2
