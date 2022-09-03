@@ -286,7 +286,7 @@ class MPU6050:
         ACCEL_YOUT_data = ACCEL_YOUT_data / self.ACCEL_SCALE_MODIFIER
         ACCEL_ZOUT_data = ACCEL_ZOUT_data / self.ACCEL_SCALE_MODIFIER
         
-        if gravity == False: #@aditya bug fixNah
+        if gravity == False: #@aditya bug fix, basically we will provide values in m/s^2
             ACCEL_XOUT_data = ACCEL_XOUT_data * self.GRAVITIY_MS2
             ACCEL_YOUT_data = ACCEL_YOUT_data * self.GRAVITIY_MS2
             ACCEL_ZOUT_data = ACCEL_ZOUT_data * self.GRAVITIY_MS2
