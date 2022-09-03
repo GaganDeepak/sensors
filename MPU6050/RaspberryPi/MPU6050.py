@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from Registers import MPURegisters as mpu6050
+from .Registers import MPURegisters as mpu6050
 from smbus import SMBus
 import time
 
@@ -219,7 +219,7 @@ class MPU6050:
         Now you can pass default values mentioned: 250, 500, 1000, 2000 degrees/second
         '''
         # Create a dictionary
-        # Full Range Selector
+        # Full Scale Range Selector
         scale_range = {
             250 : 0,
             500 : 1,
@@ -273,6 +273,11 @@ class MPU6050:
         """
         Fetches Recent accelerometer values
         """
+        ACCEL_XOUT_data = 0
+        ACCEL_YOUT_data = 0
+        ACCEL_ZOUT_data = 0
+        
+        
         if ACCEL_XOUT:
             ACCEL_XOUT_data = self.read_i2c_byte_data(mpu6050.ACCEL_XOUT_H)
 
@@ -299,6 +304,10 @@ class MPU6050:
         """
         Fetches Recent gyroscope values
         """
+        GYRO_XOUT_data = 0
+        GYRO_YOUT_data = 0
+        GYRO_ZOUT_data = 0
+        
         if GYRO_XOUT:
             GYRO_XOUT_data = self.read_i2c_byte_data(mpu6050.GYRO_XOUT_H)
         if GYRO_YOUT:
