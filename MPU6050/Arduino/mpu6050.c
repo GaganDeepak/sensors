@@ -1,5 +1,5 @@
 /*
-    MPU6050 Interface with RaspberryPi I2C port
+    MPU6050 Interface with Arduino
 */
 
 /*
